@@ -12,6 +12,11 @@ module.exports = {
 			headerCorrespondence: ['type', 'scope', 'subject'],
 		},
 	},
+	// release-please writes its own release commit and owns its format - the scope is the
+	// release branch, not a task key, so it can never satisfy headerPattern. Every Linchpin
+	// repo using release-please produces these, so linting them just fails the release PR.
+	// Matches `chore(main): release 1.2.3`, and the master / component variants.
+	ignores: [(message) => /^chore\(.+\): release v?\d+\.\d+\.\d+/.test(message)],
 	helpUrl: 'https://www.conventionalcommits.org',
 	messages: {
 		'type-enum': 'Commit type must be one of: add, improve, build, chore, ci, docs, feat, feature, fix, perf, refactor, remove, revert, style, test, update.',

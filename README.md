@@ -83,6 +83,16 @@ docs(#42): Update readme
 
 The config also sets a custom `parserPreset.parserOpts.headerPattern` that enforces the scope format, and overrides the `type-enum`, `subject-case` and `header-pattern` messages so failures explain the convention rather than printing the raw rule name.
 
+### Ignored commits
+
+[release-please](https://github.com/googleapis/release-please) writes its own release commit and owns its format — the scope is the release branch (`main`, `master`, or a component), never a task key, so it can never satisfy `headerPattern`. Linting it would fail the release PR in every repo, so it is ignored:
+
+```
+chore(main): release 1.2.3
+```
+
+The exemption is deliberately narrow — it matches only a `release` subject followed by a version number. `chore(main): Update something else` is still rejected.
+
 ## Extending in a project
 
 Project-level rules are merged on top of this config, so a repo can tighten or relax a rule without forking:
