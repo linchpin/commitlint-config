@@ -6,14 +6,31 @@
   "files": [
     "index.js"
   ],
+  "engines": {
+    "node": ">=18"
+  },
   "scripts": {
-    "test": "jest"
+    "test": "jest",
+    "commitlint": "commitlint --edit",
+    "prepublishOnly": "npm test"
   },
   "keywords": [
     "commitlint",
     "commitlint-config",
-    "conventional-commits"
+    "conventional-commits",
+    "linchpin"
   ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/linchpin/commitlint-config.git"
+  },
+  "homepage": "https://github.com/linchpin/commitlint-config#readme",
+  "bugs": {
+    "url": "https://github.com/linchpin/commitlint-config/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
   "license": "MIT",
   "peerDependencies": {
     "@commitlint/cli": ">=17.0.0",
