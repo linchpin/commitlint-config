@@ -78,7 +78,7 @@ docs(#42): Update readme
 
 | Rule | Level | Description |
 | --- | --- | --- |
-| `type-enum` | error | Type must be one of: `improve`, `build`, `chore`, `ci`, `docs`, `feat`, `feature`, `fix`, `perf`, `refactor`, `revert`, `style`, `test`, `update` |
+| `type-enum` | error | Type must be one of: `add`, `improve`, `build`, `chore`, `ci`, `docs`, `feat`, `feature`, `fix`, `perf`, `refactor`, `remove`, `revert`, `style`, `test`, `update` |
 | `subject-case` | warning | Subject must be in sentence-case |
 
 The config also sets a custom `parserPreset.parserOpts.headerPattern` that enforces the scope format, and overrides the `type-enum`, `subject-case` and `header-pattern` messages so failures explain the convention rather than printing the raw rule name.
