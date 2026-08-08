@@ -18,8 +18,19 @@ describe('@linchpinagency/commitlint-config', () => {
 
 	test('type-enum includes expected types', () => {
 		const [, , types] = config.rules['type-enum'];
-		const expected = ['improve', 'build', 'chore', 'ci', 'docs', 'feat', 'feature', 'fix', 'perf', 'refactor', 'revert', 'style', 'test', 'update'];
+		const expected = ['add', 'improve', 'build', 'chore', 'ci', 'docs', 'feat', 'feature', 'fix', 'perf', 'refactor', 'remove', 'revert', 'style', 'test', 'update'];
 		expect(types).toEqual(expect.arrayContaining(expected));
+	});
+
+	// Every type in type-enum must also be reachable through headerPattern. The two are
+	// separate lists, so a type added to one and not the other passes type-enum and is
+	// then rejected by the parser — the failure mode this guards against.
+	test('every allowed type is accepted by headerPattern', () => {
+		const [, , types] = config.rules['type-enum'];
+		const pattern = config.parserPreset.parserOpts.headerPattern;
+		for (const type of types) {
+			expect(`${type}(PROJ-123): Some subject`).toMatch(pattern);
+		}
 	});
 
 	test('subject-case rule is set to warning level', () => {
@@ -39,6 +50,8 @@ describe('@linchpinagency/commitlint-config', () => {
 		expect('feature(NO-TASK): Add another feature').toMatch(pattern);
 		expect('fix(NO-TASK): Fix a bug').toMatch(pattern);
 		expect('docs(#42): Update readme').toMatch(pattern);
+		expect('add(PROJ-123): Add a thing').toMatch(pattern);
+		expect('remove(PROJ-123): Remove a thing').toMatch(pattern);
 	});
 
 	test('helpUrl points to conventionalcommits.org', () => {
