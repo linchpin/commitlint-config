@@ -106,7 +106,7 @@ describe('@linchpinagency/commitlint-config', () => {
 		});
 
 		test('names the offending scope', () => {
-			expect(explain('feat(deps): Update something')).toContain('"deps" is not a valid scope');
+			expect(explain('feat(nonsense): Update something')).toContain('"nonsense" is not a valid scope');
 		});
 
 		test('suggests the uppercase form of a lowercase task key', () => {
@@ -127,6 +127,40 @@ describe('@linchpinagency/commitlint-config', () => {
 
 		test('reports an empty header', () => {
 			expect(explain('')).toContain('empty');
+		});
+	});
+
+	// Dependency updates carry no task, so the scope slot names the kind of dependency.
+	// wp-plugin / wp-theme keep WordPress updates legible in a mostly automated log.
+	describe('dependency scopes', () => {
+		const { explain } = config;
+		const pattern = config.parserPreset.parserOpts.headerPattern;
+
+		test.each([
+			'update(wp-plugin): Update translatepress-multilingual to v3.2.4',
+			'update(wp-theme): Update ollie-pro to v2.6.1',
+			'build(deps): Update npm-run-all2 to v9.0.3',
+			'build(deps-dev): Update svgo to v3.3.4',
+			'build(composer): Update humbug/php-scoper to v0.18.19',
+			'build(npm): Update webpack to v5.94.0',
+			'chore(actions): Update actions/checkout to v7',
+		])('accepts %s', (header) => {
+			expect(explain(header)).toBeNull();
+			expect(header).toMatch(pattern);
+		});
+
+		// deps-dev must win over deps, or the scope parses as `deps` and the header breaks.
+		test('parses deps-dev as a whole scope', () => {
+			const [, , scope] = 'build(deps-dev): Update svgo to v3'.match(pattern);
+			expect(scope).toBe('deps-dev');
+		});
+
+		test.each([
+			'feat(nonsense): Bad scope',
+			'feat(DEP): Old uppercase scope',
+			'feat(PLUGIN): Old uppercase scope',
+		])('still rejects %s', (header) => {
+			expect(explain(header)).not.toBeNull();
 		});
 	});
 });

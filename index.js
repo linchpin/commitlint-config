@@ -2,15 +2,22 @@
 
 const TYPES = ['add', 'improve', 'build', 'chore', 'ci', 'docs', 'feat', 'feature', 'fix', 'perf', 'refactor', 'remove', 'revert', 'style', 'test', 'update'];
 
-// A ClickUp-style task key, NO-TASK, or a GitHub issue number.
-const SCOPE = /^(?:[A-Z]+-\d+|NO-TASK|#\d+)$/;
+// Dependency updates have no task behind them, so the scope slot carries the kind of
+// dependency instead - which is what the wider ecosystem does too (`build(deps)`,
+// `chore(deps-dev)`). wp-plugin and wp-theme keep WordPress updates obvious at a glance
+// in a log that is mostly automated. deps-dev precedes deps so the longer one wins.
+const DEP_SCOPES = ['deps-dev', 'deps', 'wp-plugin', 'wp-theme', 'npm', 'composer', 'actions'];
+
+// A ClickUp-style task key, NO-TASK, a GitHub issue number, or a dependency scope.
+const SCOPE = new RegExp(`^(?:[A-Z]+-\\d+|NO-TASK|#\\d+|${DEP_SCOPES.join('|')})$`);
 
 // Deliberately loose: this is what splits a header up so we can say which part is wrong.
 // headerPattern below is the strict one, and it matching is the actual pass condition.
 const LOOSE_HEADER = /^([^\s(!:]+)(?:\(([^)]*)\))?(!)?:[ \t]*(.*)$/;
 
 const FORMAT = '<type>(<scope>): <Subject>';
-const SCOPE_HELP = 'a task key such as PROJ-123, NO-TASK, or a GitHub issue number such as #42';
+const SCOPE_HELP = 'a task key such as PROJ-123, NO-TASK, a GitHub issue number such as #42, '
+	+ `or a dependency scope (${DEP_SCOPES.join(', ')})`;
 const EXAMPLE = 'Example: feat(PROJ-123): Add new feature';
 
 /**
@@ -104,7 +111,11 @@ module.exports = {
 	},
 	parserPreset: {
 		parserOpts: {
-			headerPattern: /^(add|update|improve|build|ci|feat|feature|fix|docs|style|remove|revert|perf|refactor|test|chore)\(((?:[A-Z]+-\d+)|(?:NO-TASK)|(?:#\d+))\):\s?([\w\d\s,\-]*)/,
+			headerPattern: new RegExp(
+				`^(${TYPES.join('|')})`
+				+ `\\(((?:[A-Z]+-\\d+)|(?:NO-TASK)|(?:#\\d+)|(?:${DEP_SCOPES.join('|')}))\\)`
+				+ ':\\s?([\\w\\d\\s,\\-]*)'
+			),
 			headerCorrespondence: ['type', 'scope', 'subject'],
 		},
 	},
