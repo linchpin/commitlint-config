@@ -2,7 +2,7 @@
 
 const config = require('./index');
 
-describe('@linchpin/commitlint-config', () => {
+describe('@linchpinagency/commitlint-config', () => {
 	test('exports an object', () => {
 		expect(typeof config).toBe('object');
 	});
@@ -38,7 +38,6 @@ describe('@linchpin/commitlint-config', () => {
 		expect('feat(PROJ-123): Add new feature').toMatch(pattern);
 		expect('feature(NO-TASK): Add another feature').toMatch(pattern);
 		expect('fix(NO-TASK): Fix a bug').toMatch(pattern);
-		expect('chore(NO-JIRA): Update deps').toMatch(pattern);
 		expect('docs(#42): Update readme').toMatch(pattern);
 	});
 

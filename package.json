@@ -1,5 +1,5 @@
 {
-  "name": "@linchpin/commitlint-config",
+  "name": "@linchpinagency/commitlint-config",
   "version": "1.0.0",
   "description": "A standardized commitlint configuration for Linchpin projects",
   "main": "index.js",
