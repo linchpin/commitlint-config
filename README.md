@@ -63,7 +63,7 @@ npx --no -- commitlint --edit "$1"
 ```
 
 - **type** — one of the allowed types listed below.
-- **scope** — a ClickUp-style task key (e.g. `PROJ-123`), `NO-TASK`, or a GitHub issue number (e.g. `#42`).
+- **scope** — a ClickUp-style task key (e.g. `PROJ-123`), `NO-TASK`, a GitHub issue number (e.g. `#42`), or a [dependency scope](#dependency-scopes).
 - **subject** — short description in sentence case.
 
 ### Examples
@@ -73,6 +73,23 @@ feat(PROJ-123): Add new feature
 fix(NO-TASK): Fix a bug
 docs(#42): Update readme
 ```
+
+### Dependency scopes
+
+Dependency updates have no task behind them, so the scope names the kind of dependency instead — the same thing the wider ecosystem does with `build(deps)` and `chore(deps-dev)`. `wp-plugin` and `wp-theme` keep WordPress updates obvious at a glance in a log that is mostly automated:
+
+```
+update(wp-plugin): Update translatepress-multilingual to v3.2.4
+update(wp-theme):  Update ollie-pro to v2.6.1
+build(deps):       Update npm-run-all2 to v9.0.3
+build(deps-dev):   Update svgo to v3.3.4
+build(composer):   Update humbug/php-scoper to v0.18.19
+chore(actions):    Update actions/checkout to v7
+```
+
+Allowed: `deps`, `deps-dev`, `wp-plugin`, `wp-theme`, `npm`, `composer`, `actions`. These are emitted by [linchpin/renovatebot-config](https://github.com/linchpin/renovatebot-config); anything else must still be a task key, `NO-TASK`, or an issue number.
+
+`build` is the [Angular convention's type for external dependencies](https://www.conventionalcommits.org/en/v1.0.0-beta.4/), and `update` reads better for a WordPress plugin bump — both are valid here.
 
 ## Rules
 
