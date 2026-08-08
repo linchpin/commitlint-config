@@ -81,9 +81,52 @@ describe('@linchpinagency/commitlint-config', () => {
 		expect(config.helpUrl).toBe('https://www.conventionalcommits.org');
 	});
 
-	test('messages are defined', () => {
-		expect(config.messages['type-enum']).toBeDefined();
-		expect(config.messages['subject-case']).toBeDefined();
-		expect(config.messages['header-pattern']).toBeDefined();
+	// The previous config carried a top-level `messages` key. That is not a commitlint
+	// option and never reached the user; diagnostics now come from the linchpin-header rule.
+	test('does not rely on a non-existent messages option', () => {
+		expect(config.messages).toBeUndefined();
+	});
+
+	describe('linchpin-header explains which part failed', () => {
+		const { explain } = config;
+
+		test.each([
+			['feat(PROJ-123): Add new feature'],
+			['fix(NO-TASK): Fix a bug'],
+			['docs(#42): Update readme'],
+			['build(NO-TASK): Update npm dependency npm-run-all2 to v9.0.3'],
+		])('accepts %s', (header) => {
+			expect(explain(header)).toBeNull();
+		});
+
+		test('names the offending type, not an empty subject', () => {
+			const out = explain('nope(PROJ-123): Bad type here');
+			expect(out).toContain('"nope" is not a valid type');
+			expect(out).not.toContain('subject may not be empty');
+		});
+
+		test('names the offending scope', () => {
+			expect(explain('feat(deps): Update something')).toContain('"deps" is not a valid scope');
+		});
+
+		test('suggests the uppercase form of a lowercase task key', () => {
+			expect(explain('feat(proj-123): Lowercase key')).toContain('try "PROJ-123"');
+		});
+
+		test('catches the NOTASK typo specifically', () => {
+			expect(explain('feat(NOTASK): Typo scope')).toContain('exactly as NO-TASK');
+		});
+
+		test('reports a missing scope', () => {
+			expect(explain('feat: No scope at all')).toContain('scope is missing');
+		});
+
+		test('reports a missing subject', () => {
+			expect(explain('feat(NO-TASK):')).toContain('subject is missing');
+		});
+
+		test('reports an empty header', () => {
+			expect(explain('')).toContain('empty');
+		});
 	});
 });

@@ -81,7 +81,23 @@ docs(#42): Update readme
 | `type-enum` | error | Type must be one of: `add`, `improve`, `build`, `chore`, `ci`, `docs`, `feat`, `feature`, `fix`, `perf`, `refactor`, `remove`, `revert`, `style`, `test`, `update` |
 | `subject-case` | warning | Subject must be in sentence-case |
 
-The config also sets a custom `parserPreset.parserOpts.headerPattern` that enforces the scope format, and overrides the `type-enum`, `subject-case` and `header-pattern` messages so failures explain the convention rather than printing the raw rule name.
+The config also sets a custom `parserPreset.parserOpts.headerPattern` that enforces the scope format.
+
+### Failure messages
+
+commitlint on its own reports a malformed header badly. When `headerPattern` fails to match, the parser extracts nothing, so a misspelled type comes back as *"type may not be empty"* and *"subject may not be empty"* — neither of which is the actual problem.
+
+The `linchpin-header` rule replaces that with a description of the part that failed:
+
+```
+✖   "nope" is not a valid type.
+      Valid types: add, improve, build, chore, ci, docs, feat, ...
+
+✖   "proj-123" is not a valid scope. Task keys are uppercase - try "PROJ-123".
+      Use a task key such as PROJ-123, NO-TASK, or a GitHub issue number such as #42.
+```
+
+It also catches the common near-misses: a lowercase task key, `NOTASK` for `NO-TASK`, and a missing scope or subject.
 
 ### Ignored commits
 
