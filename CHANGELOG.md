@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.2.0](https://github.com/linchpin/commitlint-config/compare/v1.1.0...v1.2.0) (2026-08-08)
+
+
+### Features ✨
+
+* **NO-TASK:** Allow dependency scopes such as wp-plugin and deps ([36035de](https://github.com/linchpin/commitlint-config/commit/36035dea78f9641e89ee72bd7c4cb6583523ed31))
+* **NO-TASK:** Allow dependency scopes such as wp-plugin and deps ([51e79d4](https://github.com/linchpin/commitlint-config/commit/51e79d40426c8bcfff0a64fb96b5a8d3d6aebc88))
+
+
+### Miscellaneous 🧹
+
+* **NO-TASK:** Explain which part of a commit header failed ([7bb9fc2](https://github.com/linchpin/commitlint-config/commit/7bb9fc26b576f91bd08b4d8f4870975b19962abb))
+* **NO-TASK:** Explain which part of a commit header failed ([ecb7b63](https://github.com/linchpin/commitlint-config/commit/ecb7b635cf351221964c56d0985c3458f7de1a33))
+
 ## [1.1.0](https://github.com/linchpin/commitlint-config/compare/v1.0.0...v1.1.0) (2026-08-08)
 
 
