@@ -3,8 +3,8 @@
 	"release-type": "node",
 	"bump-minor-pre-major": true,
 	"bump-patch-for-minor-pre-major": true,
-	"include-v-in-tag": true,
 	"include-component-in-tag": false,
+	"include-v-in-tag": true,
 	"pull-request-header": ":gem: Automated Release",
 	"packages": {
 		".": {
@@ -13,19 +13,88 @@
 		}
 	},
 	"changelog-sections": [
-		{ "type": "feat", "section": "Features ✨" },
-		{ "type": "feature", "section": "Features ✨" },
-		{ "type": "fix", "section": "Bug Fixes 🐛" },
-		{ "type": "improve", "section": "Improvements 🎨" },
-		{ "type": "update", "section": "Improvements 🎨" },
-		{ "type": "docs", "section": "Documentation 📚" },
-		{ "type": "refactor", "section": "Refactoring ♻️" },
-		{ "type": "perf", "section": "Performance ⚡️" },
-		{ "type": "style", "section": "Styles 💄" },
-		{ "type": "test", "section": "Tests 🧪" },
-		{ "type": "chore", "section": "Miscellaneous 🧹" },
-		{ "type": "revert", "section": "Reverts ⏪️" },
-		{ "type": "ci", "section": "Continuous Integration 👷", "hidden": true },
-		{ "type": "build", "section": "Build System 📦", "hidden": true }
+		{
+			"type": "feat",
+			"section": "Features ✨"
+		},
+		{
+			"type": "feature",
+			"section": "Features ✨"
+		},
+		{
+			"type": "add",
+			"section": "Features ✨"
+		},
+		{
+			"type": "fix",
+			"section": "Bug Fixes 🐛"
+		},
+		{
+			"type": "improve",
+			"section": "Changes to Existing Features 💅"
+		},
+		{
+			"type": "refactor",
+			"section": "Changes to Existing Features 💅"
+		},
+		{
+			"type": "update",
+			"section": "Changes to Existing Features 💅"
+		},
+		{
+			"type": "perf",
+			"section": "Performance Improvements ⚡️"
+		},
+		{
+			"type": "remove",
+			"section": "Removed 🗑️"
+		},
+		{
+			"type": "wp-plugin",
+			"section": "WordPress Plugins 🔌"
+		},
+		{
+			"type": "wp-theme",
+			"section": "WordPress Themes 🖌️"
+		},
+		{
+			"type": "deps",
+			"section": "Dependencies 📦"
+		},
+		{
+			"type": "docs",
+			"section": "Documentation 📚"
+		},
+		{
+			"type": "style",
+			"section": "Styles 🎨"
+		},
+		{
+			"type": "test",
+			"section": "Tests 🧪"
+		},
+		{
+			"type": "revert",
+			"section": "Reverts ⏪️"
+		},
+		{
+			"type": "chore",
+			"section": "Miscellaneous Chores 🧹"
+		},
+		{
+			"type": "platform",
+			"section": "Platform 🏗️",
+			"hidden": true
+		},
+		{
+			"type": "build",
+			"section": "Build System 🔧",
+			"hidden": true
+		},
+		{
+			"type": "ci",
+			"section": "Continuous Integration 👷",
+			"hidden": true
+		}
 	]
 }

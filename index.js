@@ -1,12 +1,25 @@
 'use strict';
 
-const TYPES = ['add', 'improve', 'build', 'chore', 'ci', 'docs', 'feat', 'feature', 'fix', 'perf', 'refactor', 'remove', 'revert', 'style', 'test', 'update'];
+// wp-plugin and wp-theme are types here, not only scopes, because release-please groups
+// changelog sections strictly by type - there is no scope key in its schema - so
+// `update(wp-plugin)` and `update(wp-theme)` would share the type `update` and collapse into
+// one section. As types they get a section each. linchpin/renovatebot-config emits them.
+//
+// deps and platform are no longer emitted by renovatebot-config, which routes that traffic
+// through build(npm) and build(composer). They stay allowed because the fleet's history
+// contains them, and because either reads better than `build` for a hand-written dependency
+// commit. @linchpinagency/release-please-config maps every type here to a section, and its
+// tests assert the two lists are identical - so adding a type in one place without the other
+// fails CI instead of silently dropping commits from a changelog.
+const TYPES = ['add', 'improve', 'build', 'chore', 'ci', 'deps', 'docs', 'feat', 'feature', 'fix', 'perf', 'platform', 'refactor', 'remove', 'revert', 'style', 'test', 'update', 'wp-plugin', 'wp-theme'];
 
 // Dependency updates have no task behind them, so the scope slot carries the kind of
 // dependency instead - which is what the wider ecosystem does too (`build(deps)`,
-// `chore(deps-dev)`). wp-plugin and wp-theme keep WordPress updates obvious at a glance
-// in a log that is mostly automated. deps-dev precedes deps so the longer one wins.
-const DEP_SCOPES = ['deps-dev', 'deps', 'wp-plugin', 'wp-theme', 'npm', 'composer', 'actions'];
+// `chore(deps-dev)`). Under the wp-plugin and wp-theme types the scope names where the
+// package came from: `wporg` for anything public (wp-packages.org or wpackagist.org, which
+// are two routes to the same wordpress.org packages) and `linchpin` for our own
+// packagist.linchpin.com. deps-dev precedes deps so the longer one wins.
+const DEP_SCOPES = ['deps-dev', 'deps', 'wp-plugin', 'wp-theme', 'wporg', 'linchpin', 'npm', 'composer', 'actions'];
 
 // A ClickUp-style task key, NO-TASK, a GitHub issue number, or a dependency scope.
 const SCOPE = new RegExp(`^(?:[A-Z]+-\\d+|NO-TASK|#\\d+|${DEP_SCOPES.join('|')})$`);
