@@ -87,15 +87,32 @@ build(composer):   Update humbug/php-scoper to v0.18.19
 chore(actions):    Update actions/checkout to v7
 ```
 
-Allowed: `deps`, `deps-dev`, `wp-plugin`, `wp-theme`, `npm`, `composer`, `actions`. These are emitted by [linchpin/renovatebot-config](https://github.com/linchpin/renovatebot-config); anything else must still be a task key, `NO-TASK`, or an issue number.
+Allowed: `deps`, `deps-dev`, `wp-plugin`, `wp-theme`, `wporg`, `linchpin`, `npm`, `composer`, `actions`. These are emitted by [linchpin/renovatebot-config](https://github.com/linchpin/renovatebot-config); anything else must still be a task key, `NO-TASK`, or an issue number.
 
 `build` is the [Angular convention's type for external dependencies](https://www.conventionalcommits.org/en/v1.0.0-beta.4/), and `update` reads better for a WordPress plugin bump — both are valid here.
+
+### WordPress types
+
+`wp-plugin` and `wp-theme` are types as well as scopes. [release-please](https://github.com/googleapis/release-please) groups changelog sections strictly by **type** — its schema has no scope key — so WordPress updates need their own types to get their own changelog sections. Under those types the scope names where the package came from:
+
+```
+wp-plugin(wporg):    Update akismet to v5.3
+wp-plugin(linchpin): Update gravityforms to v3
+wp-theme(deps):      Update ollie-pro to v2.6.1
+deps(npm):           Update webpack to v5.94.0
+deps(composer):      Update wp-cli to v2.11
+platform(deps):      Update php to v8.3
+```
+
+`wporg` is anything public — [wp-packages.org](https://wp-packages.org) and [wpackagist.org](https://wpackagist.org) are two routes to the same wordpress.org packages, so they share a scope. `linchpin` is our own [packagist.linchpin.com](https://packagist.linchpin.com). Themes are routed as one group upstream, so they carry the generic `deps` scope.
+
+The matching changelog sections live in [linchpin/release-please-config](https://github.com/linchpin/release-please-config), whose test suite asserts that its section list equals the type list here — so a type added in one place and not the other fails CI rather than silently dropping commits from a changelog.
 
 ## Rules
 
 | Rule | Level | Description |
 | --- | --- | --- |
-| `type-enum` | error | Type must be one of: `add`, `improve`, `build`, `chore`, `ci`, `docs`, `feat`, `feature`, `fix`, `perf`, `refactor`, `remove`, `revert`, `style`, `test`, `update` |
+| `type-enum` | error | Type must be one of: `add`, `improve`, `build`, `chore`, `ci`, `deps`, `docs`, `feat`, `feature`, `fix`, `perf`, `platform`, `refactor`, `remove`, `revert`, `style`, `test`, `update`, `wp-plugin`, `wp-theme` |
 | `subject-case` | warning | Subject must be in sentence-case |
 
 The config also sets a custom `parserPreset.parserOpts.headerPattern` that enforces the scope format.

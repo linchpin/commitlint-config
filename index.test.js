@@ -18,8 +18,16 @@ describe('@linchpinagency/commitlint-config', () => {
 
 	test('type-enum includes expected types', () => {
 		const [, , types] = config.rules['type-enum'];
-		const expected = ['add', 'improve', 'build', 'chore', 'ci', 'docs', 'feat', 'feature', 'fix', 'perf', 'refactor', 'remove', 'revert', 'style', 'test', 'update'];
+		const expected = ['add', 'improve', 'build', 'chore', 'ci', 'deps', 'docs', 'feat', 'feature', 'fix', 'perf', 'platform', 'refactor', 'remove', 'revert', 'style', 'test', 'update', 'wp-plugin', 'wp-theme'];
 		expect(types).toEqual(expect.arrayContaining(expected));
+	});
+
+	// These four exist so release-please can give them their own changelog sections — it
+	// groups strictly by type, with no scope key in its schema. They are listed separately
+	// from the rest because dropping one here silently collapses a section over there.
+	test('includes the types release-please sections depend on', () => {
+		const [, , types] = config.rules['type-enum'];
+		expect(types).toEqual(expect.arrayContaining(['deps', 'platform', 'wp-plugin', 'wp-theme']));
 	});
 
 	// Every type in type-enum must also be reachable through headerPattern. The two are
@@ -144,9 +152,24 @@ describe('@linchpinagency/commitlint-config', () => {
 			'build(composer): Update humbug/php-scoper to v0.18.19',
 			'build(npm): Update webpack to v5.94.0',
 			'chore(actions): Update actions/checkout to v7',
+			// The WordPress types, with the scope naming where the package came from.
+			'wp-plugin(wporg): Update akismet to v5.3',
+			'wp-plugin(linchpin): Update gravityforms to v3',
+			'wp-theme(deps): Update ollie-pro to v2.6.1',
+			'deps(composer): Update wp-cli to v2.11',
+			'deps(npm): Update webpack to v5.94.0',
+			'platform(deps): Update php to v8.3',
 		])('accepts %s', (header) => {
 			expect(explain(header)).toBeNull();
 			expect(header).toMatch(pattern);
+		});
+
+		// wp-plugin and wp-theme are valid in both slots. A hyphenated type must not be
+		// truncated by the alternation the way deps-dev could be.
+		test('parses a hyphenated type as a whole type', () => {
+			const [, type, scope] = 'wp-plugin(wporg): Update akismet to v5'.match(pattern);
+			expect(type).toBe('wp-plugin');
+			expect(scope).toBe('wporg');
 		});
 
 		// deps-dev must win over deps, or the scope parses as `deps` and the header breaks.
