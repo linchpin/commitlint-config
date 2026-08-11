@@ -163,4 +163,31 @@ describe('@linchpinagency/commitlint-config', () => {
 			expect(explain(header)).not.toBeNull();
 		});
 	});
+
+	// wp-plugin and wp-theme double as types, not just scopes, so a repo whose
+	// release-please-config gives WordPress plugins/themes their own changelog section can
+	// emit one. release-please groups strictly by type, so this is the only way in.
+	describe('wp-plugin and wp-theme as types', () => {
+		const { explain } = config;
+		const pattern = config.parserPreset.parserOpts.headerPattern;
+
+		test.each([
+			'wp-plugin(wporg): Update akismet to v5.3',
+			'wp-plugin(linchpin): Update some-plugin to v3.0',
+			'wp-theme(deps): Update twentytwentyfour to v2.0',
+		])('accepts %s', (header) => {
+			expect(explain(header)).toBeNull();
+			expect(header).toMatch(pattern);
+		});
+
+		test('wporg and linchpin are valid scopes', () => {
+			expect(explain('wp-plugin(wporg): Update something')).toBeNull();
+			expect(explain('wp-plugin(linchpin): Update something')).toBeNull();
+		});
+
+		test('the scope form documented above still works alongside the type form', () => {
+			expect(explain('update(wp-plugin): Update translatepress-multilingual to v3.2.4')).toBeNull();
+			expect(explain('update(wp-theme): Update ollie-pro to v2.6.1')).toBeNull();
+		});
+	});
 });
