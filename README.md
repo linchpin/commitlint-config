@@ -87,15 +87,29 @@ build(composer):   Update humbug/php-scoper to v0.18.19
 chore(actions):    Update actions/checkout to v7
 ```
 
-Allowed: `deps`, `deps-dev`, `wp-plugin`, `wp-theme`, `npm`, `composer`, `actions`. These are emitted by [linchpin/renovatebot-config](https://github.com/linchpin/renovatebot-config); anything else must still be a task key, `NO-TASK`, or an issue number.
+Allowed: `deps`, `deps-dev`, `wp-plugin`, `wp-theme`, `npm`, `composer`, `actions`, `wporg`, `linchpin`. These are emitted by [linchpin/renovatebot-config](https://github.com/linchpin/renovatebot-config); anything else must still be a task key, `NO-TASK`, or an issue number.
 
 `build` is the [Angular convention's type for external dependencies](https://www.conventionalcommits.org/en/v1.0.0-beta.4/), and `update` reads better for a WordPress plugin bump — both are valid here.
+
+### `wp-plugin` / `wp-theme` as a type instead of a scope
+
+`wp-plugin` and `wp-theme` are also valid **types**, not just scopes:
+
+```
+wp-plugin(wporg):    Update akismet to v5.3
+wp-plugin(linchpin): Update some-plugin to v3.0 - Major
+wp-theme(deps):      Update twentytwentyfour to v2.0
+```
+
+This exists for one reason: [release-please](https://github.com/googleapis/release-please)'s `changelog-sections` groups strictly by commit **type** — `changelog-sections[].type` is the only key that schema offers, there is no scope key — so a repo that wants WordPress plugin and theme updates in their own changelog section (rather than folded into whatever section `update` or `build` maps to) has no way to get one except by making `wp-plugin`/`wp-theme` the type. `wporg` and `linchpin` are then available as scopes to say which registry the package came from.
+
+Both forms lint cleanly. Use the scope form (`update(wp-plugin):`) unless a repo's `release-please-config.json` specifically defines a dedicated section for the `wp-plugin`/`wp-theme` type — [linchpin/renovatebot-config](https://github.com/linchpin/renovatebot-config) is the current example that does.
 
 ## Rules
 
 | Rule | Level | Description |
 | --- | --- | --- |
-| `type-enum` | error | Type must be one of: `add`, `improve`, `build`, `chore`, `ci`, `docs`, `feat`, `feature`, `fix`, `perf`, `refactor`, `remove`, `revert`, `style`, `test`, `update` |
+| `type-enum` | error | Type must be one of: `add`, `improve`, `build`, `chore`, `ci`, `docs`, `feat`, `feature`, `fix`, `perf`, `refactor`, `remove`, `revert`, `style`, `test`, `update`, `wp-plugin`, `wp-theme` |
 | `subject-case` | warning | Subject must be in sentence-case |
 
 The config also sets a custom `parserPreset.parserOpts.headerPattern` that enforces the scope format.

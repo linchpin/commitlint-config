@@ -1,12 +1,20 @@
 'use strict';
 
-const TYPES = ['add', 'improve', 'build', 'chore', 'ci', 'docs', 'feat', 'feature', 'fix', 'perf', 'refactor', 'remove', 'revert', 'style', 'test', 'update'];
+// wp-plugin and wp-theme are deliberately in both TYPES and DEP_SCOPES. As a scope
+// (`update(wp-plugin): ...`) they keep a WordPress update legible in a mostly automated
+// log. As a type (`wp-plugin(wporg): ...`) they let a repo route WordPress plugin and
+// theme updates to their own release-please changelog section - `changelog-sections[].type`
+// is the only key that schema offers, so a dedicated section is only reachable through
+// type. Neither usage is deprecated; pick whichever a repo's release-please-config needs.
+const TYPES = ['add', 'improve', 'build', 'chore', 'ci', 'docs', 'feat', 'feature', 'fix', 'perf', 'refactor', 'remove', 'revert', 'style', 'test', 'update', 'wp-plugin', 'wp-theme'];
 
 // Dependency updates have no task behind them, so the scope slot carries the kind of
 // dependency instead - which is what the wider ecosystem does too (`build(deps)`,
 // `chore(deps-dev)`). wp-plugin and wp-theme keep WordPress updates obvious at a glance
-// in a log that is mostly automated. deps-dev precedes deps so the longer one wins.
-const DEP_SCOPES = ['deps-dev', 'deps', 'wp-plugin', 'wp-theme', 'npm', 'composer', 'actions'];
+// in a log that is mostly automated. wporg and linchpin name a WordPress package's source
+// for repos that promote wp-plugin/wp-theme to a type instead, and so need a scope other
+// than the type itself. deps-dev precedes deps so the longer one wins.
+const DEP_SCOPES = ['deps-dev', 'deps', 'wp-plugin', 'wp-theme', 'npm', 'composer', 'actions', 'wporg', 'linchpin'];
 
 // A ClickUp-style task key, NO-TASK, a GitHub issue number, or a dependency scope.
 const SCOPE = new RegExp(`^(?:[A-Z]+-\\d+|NO-TASK|#\\d+|${DEP_SCOPES.join('|')})$`);
