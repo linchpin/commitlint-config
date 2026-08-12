@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.0](https://github.com/linchpin/commitlint-config/compare/v1.2.0...v1.3.0) (2026-08-12)
+
+
+### Features ✨
+
+* **LINCHPIN-5363:** Allow wp-plugin and wp-theme as commit types ([#10](https://github.com/linchpin/commitlint-config/issues/10)) ([2b25ae5](https://github.com/linchpin/commitlint-config/commit/2b25ae5b51ca924ce6c5f6308959c9f554272ac0))
+
 ## [1.2.0](https://github.com/linchpin/commitlint-config/compare/v1.1.0...v1.2.0) (2026-08-08)
 
 
