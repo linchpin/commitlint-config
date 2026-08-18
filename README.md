@@ -64,7 +64,7 @@ npx --no -- commitlint --edit "$1"
 
 - **type** — one of the allowed types listed below.
 - **scope** — a ClickUp-style task key (e.g. `PROJ-123`), `NO-TASK`, a GitHub issue number (e.g. `#42`), or a [dependency scope](#dependency-scopes).
-- **subject** — short description in sentence case.
+- **subject** — short description in sentence case, optionally preceded by a [tag](#subject-tags).
 
 ### Examples
 
@@ -81,38 +81,54 @@ Dependency updates have no task behind them, so the scope names the kind of depe
 ```
 update(wp-plugin): Update translatepress-multilingual to v3.2.4
 update(wp-theme):  Update ollie-pro to v2.6.1
+remove(wp-plugin): Remove akismet
 build(deps):       Update npm-run-all2 to v9.0.3
 build(deps-dev):   Update svgo to v3.3.4
 build(composer):   Update humbug/php-scoper to v0.18.19
 chore(actions):    Update actions/checkout to v7
 ```
 
-Allowed: `deps`, `deps-dev`, `wp-plugin`, `wp-theme`, `npm`, `composer`, `actions`, `wporg`, `linchpin`. These are emitted by [linchpin/renovatebot-config](https://github.com/linchpin/renovatebot-config); anything else must still be a task key, `NO-TASK`, or an issue number.
+`wp-plugin` and `wp-theme` are **scopes**, never types. The type says what happened — `update` for a bump, `remove` for a package that is gone — and the scope says what it happened to.
+
+Allowed: `deps`, `deps-dev`, `wp-plugin`, `wp-theme`, `npm`, `composer`, `actions`, `wporg`, `linchpin`. Anything else must still be a task key, `NO-TASK`, or an issue number.
+
+[linchpin/renovatebot-config](https://github.com/linchpin/renovatebot-config) emits `wp-plugin`, `wp-theme`, `deps`, `npm` and `composer`. `wporg` and `linchpin` are kept for hand-written commits — a package's registry now travels in a [tag](#subject-tags) instead, which leaves the scope free to say what kind of thing was updated.
 
 `build` is the [Angular convention's type for external dependencies](https://www.conventionalcommits.org/en/v1.0.0-beta.4/), and `update` reads better for a WordPress plugin bump — both are valid here.
 
-### `wp-plugin` / `wp-theme` as a type instead of a scope
+### Subject tags
 
-`wp-plugin` and `wp-theme` are also valid **types**, not just scopes:
+A subject may open with an optional bracketed tag, carrying context the scope slot has no room for. The convention is a package's registry:
 
 ```
-wp-plugin(wporg):    Update akismet to v5.3
-wp-plugin(linchpin): Update some-plugin to v3.0 - Major
-wp-theme(deps):      Update twentytwentyfour to v2.0
+update(wp-plugin): [.org] Update akismet to v5.3
+update(wp-plugin): [packagist] Update gravityforms to v3
+update(wp-theme):  [.org] Update ollie-pro to v2.6.1
 ```
 
-This exists for one reason: [release-please](https://github.com/googleapis/release-please)'s `changelog-sections` groups strictly by commit **type** — `changelog-sections[].type` is the only key that schema offers, there is no scope key — so a repo that wants WordPress plugin and theme updates in their own changelog section (rather than folded into whatever section `update` or `build` maps to) has no way to get one except by making `wp-plugin`/`wp-theme` the type. `wporg` and `linchpin` are then available as scopes to say which registry the package came from.
+`[.org]` is anything public — [wp-packages.org](https://wp-packages.org) and [wpackagist.org](https://wpackagist.org) are two routes to the same wordpress.org packages, so they share a tag. `[packagist]` is our own [packagist.linchpin.com](https://packagist.linchpin.com). Both are emitted by [linchpin/renovatebot-config](https://github.com/linchpin/renovatebot-config).
 
-Both forms lint cleanly. Use the scope form (`update(wp-plugin):`) unless a repo's `release-please-config.json` specifically defines a dedicated section for the `wp-plugin`/`wp-theme` type — [linchpin/renovatebot-config](https://github.com/linchpin/renovatebot-config) is the current example that does.
+The tag is not an enumerated list — anything matching `[\w.\-]+` is accepted, so `[hotfix]` or `[wp-packages]` work equally well. It is a label for whoever reads the log, not a routing key. What the charset buys you is that a tag stays a label: `[see PROJ-1 for why]` is rejected, and so is an unclosed `[`, which would otherwise swallow the rest of the header.
+
+Tags sit outside the captured subject, so `subject-case` and friends judge the sentence rather than the label. [release-please](https://github.com/googleapis/release-please) parses with its own pattern and keeps the tag visible in the changelog bullet:
+
+```markdown
+### Changes to Existing Features 💅
+
+* **wp-plugin:** [.org] Update akismet to v5.3
+* **wp-plugin:** [packagist] Update gravityforms to v3
+```
+
+Because release-please groups strictly by commit **type** — `changelog-sections[].type` is the only key its schema offers, there is no scope key — WordPress updates share whatever section `update` maps to rather than getting one of their own. The scope renders as the bold prefix on each bullet, which is what keeps plugin and theme lines apart inside it.
 
 ## Rules
 
 | Rule | Level | Description |
 | --- | --- | --- |
-| `type-enum` | error | Type must be one of: `add`, `improve`, `build`, `chore`, `ci`, `docs`, `feat`, `feature`, `fix`, `perf`, `refactor`, `remove`, `revert`, `style`, `test`, `update`, `wp-plugin`, `wp-theme` |
+| `type-enum` | error | Type must be one of: `add`, `improve`, `build`, `chore`, `ci`, `docs`, `feat`, `feature`, `fix`, `perf`, `refactor`, `remove`, `revert`, `style`, `test`, `update` |
 | `subject-case` | warning | Subject must be in sentence-case |
 
-The config also sets a custom `parserPreset.parserOpts.headerPattern` that enforces the scope format.
+The config also sets a custom `parserPreset.parserOpts.headerPattern` that enforces the scope format and strips an optional subject tag.
 
 ### Failure messages
 

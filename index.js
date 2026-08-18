@@ -1,20 +1,41 @@
 'use strict';
 
-// wp-plugin and wp-theme are deliberately in both TYPES and DEP_SCOPES. As a scope
-// (`update(wp-plugin): ...`) they keep a WordPress update legible in a mostly automated
-// log. As a type (`wp-plugin(wporg): ...`) they let a repo route WordPress plugin and
-// theme updates to their own release-please changelog section - `changelog-sections[].type`
-// is the only key that schema offers, so a dedicated section is only reachable through
-// type. Neither usage is deprecated; pick whichever a repo's release-please-config needs.
-const TYPES = ['add', 'improve', 'build', 'chore', 'ci', 'docs', 'feat', 'feature', 'fix', 'perf', 'refactor', 'remove', 'revert', 'style', 'test', 'update', 'wp-plugin', 'wp-theme'];
+// wp-plugin and wp-theme are scopes, not types. The type says what happened - `update` for a
+// bump, `remove` for a package that is gone - and the scope says what it happened to.
+//
+// They were briefly types as well, in 1.3.0, so that release-please could give WordPress
+// updates their own changelog section: `changelog-sections[].type` is the only key that schema
+// offers, so a dedicated section is reachable through type and nothing else. The team chose the
+// scope form regardless, which means WordPress updates share whatever section `update` maps to.
+// That is the accepted trade - the scope still renders as the bold prefix on each changelog
+// bullet, so plugin and theme lines stay apart inside the shared section.
+const TYPES = ['add', 'improve', 'build', 'chore', 'ci', 'docs', 'feat', 'feature', 'fix', 'perf', 'refactor', 'remove', 'revert', 'style', 'test', 'update'];
 
 // Dependency updates have no task behind them, so the scope slot carries the kind of
 // dependency instead - which is what the wider ecosystem does too (`build(deps)`,
 // `chore(deps-dev)`). wp-plugin and wp-theme keep WordPress updates obvious at a glance
-// in a log that is mostly automated. wporg and linchpin name a WordPress package's source
-// for repos that promote wp-plugin/wp-theme to a type instead, and so need a scope other
-// than the type itself. deps-dev precedes deps so the longer one wins.
+// in a log that is mostly automated. wporg and linchpin are kept for hand-written commits;
+// nothing emits them now that a package's source travels in a TAG instead, which leaves the
+// scope free to say what kind of thing was updated. deps-dev precedes deps so the longer
+// one wins.
 const DEP_SCOPES = ['deps-dev', 'deps', 'wp-plugin', 'wp-theme', 'npm', 'composer', 'actions', 'wporg', 'linchpin'];
+
+// An optional bracketed tag between the colon and the subject, carrying context the scope has
+// no room for - `[.org]` for a wordpress.org package, `[packagist]` for packagist.linchpin.com.
+//
+// Deliberately not an enumerated list: this is a label for a reader, not a routing key. The
+// charset is what keeps it a label - it stops `[see PROJ-1 for why]` from turning the tag into
+// a sentence, and stops an unclosed bracket from swallowing the rest of the header.
+//
+// Non-capturing in headerPattern on purpose. The subject group has to keep capturing the
+// sentence, so subject-case reads `Update akismet to v5`, not `[.org] Update akismet to v5`.
+const TAG_CHARS = '[\\w.\\-]+';
+const TAG = `(?:\\[${TAG_CHARS}\\]\\s*)?`;
+
+// The same shape, for explain(). `[^\]]*` rather than TAG_CHARS so that a malformed tag is
+// caught and quoted back instead of silently failing to match; group 1 is the tag body.
+const TAG_AT_START = /^\[([^\]]*)\](\s*)/;
+const VALID_TAG = new RegExp(`^${TAG_CHARS}$`);
 
 // A ClickUp-style task key, NO-TASK, a GitHub issue number, or a dependency scope.
 const SCOPE = new RegExp(`^(?:[A-Z]+-\\d+|NO-TASK|#\\d+|${DEP_SCOPES.join('|')})$`);
@@ -27,6 +48,7 @@ const FORMAT = '<type>(<scope>): <Subject>';
 const SCOPE_HELP = 'a task key such as PROJ-123, NO-TASK, a GitHub issue number such as #42, '
 	+ `or a dependency scope (${DEP_SCOPES.join(', ')})`;
 const EXAMPLE = 'Example: feat(PROJ-123): Add new feature';
+const TAG_EXAMPLE = '[.org] or [packagist]';
 
 /**
  * Explain what is wrong with a header, in the terms the author needs to fix it.
@@ -75,17 +97,39 @@ function explain(header) {
 		problems.push(`"${scope}" is not a valid scope.${hint}\n  Use ${SCOPE_HELP}.`);
 	}
 
-	if (!subject.trim()) {
+	// The tag is optional structure, not part of the subject, so strip it before judging what is
+	// left. Without this a leading `[` reads as a subject that does not start with a letter -
+	// true to the letter, and useless for fixing an otherwise fine header.
+	let body = subject;
+	const tag = subject.match(TAG_AT_START);
+
+	if (tag) {
+		if (!VALID_TAG.test(tag[1])) {
+			problems.push(
+				`"[${tag[1]}]" is not a valid tag. A tag holds letters, digits, dots, hyphens or `
+				+ `underscores - for example ${TAG_EXAMPLE}.`
+			);
+		}
+		body = subject.slice(tag[0].length);
+	} else if (subject.startsWith('[')) {
+		// Left as the whole subject deliberately: the closing bracket is the one problem worth
+		// reporting, and treating the rest as a subject would add a spurious second complaint.
+		problems.push(
+			`The tag is missing its closing bracket. Write it as ${TAG_EXAMPLE}, then the subject.`
+		);
+	}
+
+	if (!body.trim()) {
 		problems.push('The subject is missing. Describe the change after the colon.');
 	}
 
 	// The strict pattern stops at the first character it cannot take, so a header can look
 	// fine yet parse to a truncated subject. Worth saying out loud rather than silently
 	// shipping a half-sentence into the changelog.
-	if (problems.length === 0 && subject.trim()) {
-		const usable = subject.match(/^[\w\d\s,-]*/)[0].trim();
+	if (problems.length === 0 && body.trim()) {
+		const usable = body.match(/^[\w\d\s,-]*/)[0].trim();
 		if (!usable) {
-			problems.push(`The subject must start with a letter or number. "${subject}" does not.`);
+			problems.push(`The subject must start with a letter or number. "${body}" does not.`);
 		}
 	}
 
@@ -122,7 +166,7 @@ module.exports = {
 			headerPattern: new RegExp(
 				`^(${TYPES.join('|')})`
 				+ `\\(((?:[A-Z]+-\\d+)|(?:NO-TASK)|(?:#\\d+)|(?:${DEP_SCOPES.join('|')}))\\)`
-				+ ':\\s?([\\w\\d\\s,\\-]*)'
+				+ `:\\s?${TAG}([\\w\\d\\s,\\-]*)`
 			),
 			headerCorrespondence: ['type', 'scope', 'subject'],
 		},
