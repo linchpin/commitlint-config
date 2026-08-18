@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.1](https://github.com/linchpin/commitlint-config/compare/v1.3.0...v1.3.1) (2026-08-18)
+
+
+### Bug Fixes 🐛
+
+* **NO-TASK:** Make wp-plugin and wp-theme scopes only, add subject tags ([#12](https://github.com/linchpin/commitlint-config/issues/12)) ([6ce4621](https://github.com/linchpin/commitlint-config/commit/6ce46210424ca4874e82c38add47139904054557))
+
 ## [1.3.0](https://github.com/linchpin/commitlint-config/compare/v1.2.0...v1.3.0) (2026-08-12)
 
 
