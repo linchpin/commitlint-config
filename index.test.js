@@ -139,6 +139,10 @@ describe('@linchpinagency/commitlint-config', () => {
 		test.each([
 			'update(wp-plugin): Update translatepress-multilingual to v3.2.4',
 			'update(wp-theme): Update ollie-pro to v2.6.1',
+			'remove(wp-plugin): Remove akismet',
+			'remove(wp-theme): Remove twentytwentyfour',
+			'update(wporg): Update a public package',
+			'update(linchpin): Update a packagist.linchpin.com package',
 			'build(deps): Update npm-run-all2 to v9.0.3',
 			'build(deps-dev): Update svgo to v3.3.4',
 			'build(composer): Update humbug/php-scoper to v0.18.19',
@@ -164,10 +168,11 @@ describe('@linchpinagency/commitlint-config', () => {
 		});
 	});
 
-	// wp-plugin and wp-theme double as types, not just scopes, so a repo whose
-	// release-please-config gives WordPress plugins/themes their own changelog section can
-	// emit one. release-please groups strictly by type, so this is the only way in.
-	describe('wp-plugin and wp-theme as types', () => {
+	// 1.3.0 allowed wp-plugin and wp-theme as types so release-please could give WordPress
+	// updates a dedicated changelog section. The team settled on the scope form instead, so the
+	// type form is gone. Asserted rather than assumed: it is a one-word edit to put it back, and
+	// the two forms are indistinguishable at a glance in a config file.
+	describe('wp-plugin and wp-theme are scopes, not types', () => {
 		const { explain } = config;
 		const pattern = config.parserPreset.parserOpts.headerPattern;
 
@@ -175,19 +180,75 @@ describe('@linchpinagency/commitlint-config', () => {
 			'wp-plugin(wporg): Update akismet to v5.3',
 			'wp-plugin(linchpin): Update some-plugin to v3.0',
 			'wp-theme(deps): Update twentytwentyfour to v2.0',
+		])('rejects the type form %s', (header) => {
+			expect(explain(header)).toContain('is not a valid type');
+			expect(header).not.toMatch(pattern);
+		});
+
+		test.each(['wp-plugin', 'wp-theme'])('%s is absent from type-enum', (type) => {
+			const [, , types] = config.rules['type-enum'];
+			expect(types).not.toContain(type);
+		});
+
+		test('the scope form is what replaces it', () => {
+			expect(explain('update(wp-plugin): Update translatepress-multilingual to v3.2.4')).toBeNull();
+			expect(explain('update(wp-theme): Update ollie-pro to v2.6.1')).toBeNull();
+		});
+	});
+
+	// An optional bracketed tag carries what the scope slot no longer can - which registry a
+	// WordPress package came from. linchpin/renovatebot-config emits `[.org]` and `[packagist]`.
+	describe('subject tags', () => {
+		const { explain } = config;
+		const pattern = config.parserPreset.parserOpts.headerPattern;
+
+		test.each([
+			'update(wp-plugin): [.org] Update akismet to v5.3',
+			'update(wp-plugin): [packagist] Update gravityforms to v3',
+			'update(wp-theme): [.org] Update Themes wordpress.org',
+			'update(wp-theme): [packagist] Update Themes packagist.linchpin.com - Major',
+			'fix(PROJ-123): [hotfix] Correct the redirect',
+			'update(wp-plugin): [wp-packages] Update akismet to v5',
 		])('accepts %s', (header) => {
 			expect(explain(header)).toBeNull();
 			expect(header).toMatch(pattern);
 		});
 
-		test('wporg and linchpin are valid scopes', () => {
-			expect(explain('wp-plugin(wporg): Update something')).toBeNull();
-			expect(explain('wp-plugin(linchpin): Update something')).toBeNull();
+		// The whole reason the tag is a non-capturing group. If it leaked into the subject then
+		// subject-case would be judging the label rather than the sentence.
+		test('a tag is not part of the captured subject', () => {
+			const [, type, scope, subject] = 'update(wp-plugin): [.org] Update akismet to v5'.match(pattern);
+			expect(type).toBe('update');
+			expect(scope).toBe('wp-plugin');
+			expect(subject).toBe('Update akismet to v5');
 		});
 
-		test('the scope form documented above still works alongside the type form', () => {
-			expect(explain('update(wp-plugin): Update translatepress-multilingual to v3.2.4')).toBeNull();
-			expect(explain('update(wp-theme): Update ollie-pro to v2.6.1')).toBeNull();
+		test('an untagged subject is unaffected', () => {
+			const [, , , subject] = 'update(wp-plugin): Update akismet to v5'.match(pattern);
+			expect(subject).toBe('Update akismet to v5');
+		});
+
+		test('a malformed tag is reported as a tag problem', () => {
+			expect(explain('update(wp-plugin): [] Update akismet')).toContain('is not a valid tag');
+			expect(explain('update(wp-plugin): [a b] Update akismet')).toContain('is not a valid tag');
+		});
+
+		test('an unclosed tag names the missing bracket', () => {
+			expect(explain('update(wp-plugin): [unclosed Update akismet')).toContain('closing bracket');
+		});
+
+		// Each of these used to collapse into "The subject must start with a letter or number",
+		// which is true of a leading `[` and no help at all in fixing it.
+		test.each([
+			'update(wp-plugin): [] Update akismet',
+			'update(wp-plugin): [a b] Update akismet',
+			'update(wp-plugin): [unclosed Update akismet',
+		])('does not misreport %s as a subject problem', (header) => {
+			expect(explain(header)).not.toContain('must start with a letter');
+		});
+
+		test('a tag with no subject after it still reports a missing subject', () => {
+			expect(explain('update(wp-plugin): [.org]')).toContain('subject is missing');
 		});
 	});
 });
